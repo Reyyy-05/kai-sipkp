@@ -1,0 +1,209 @@
+// =====================================================
+// SI-PKP Database Schema (Prisma)
+// Sistem Informasi Pengelolaan Keluhan Pelanggan
+// PT Kereta Api Indonesia (Persero)
+// =====================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── USERS ──────────────────────────────────────────
+
+enum UserRole {
+  admin
+  staff
+  pic
+  management_rep
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(100)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         UserRole @default(staff)
+  phone        String?  @db.VarChar(20)
+  position     String?  @db.VarChar(100)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  createdComplaints  Complaint[]         @relation("CreatedBy")
+  updatedComplaints  Complaint[]         @relation("UpdatedBy")
+  verifiedComplaints Complaint[]         @relation("PIC")
+  auditLogs          AuditLog[]
+  createdDocuments   Document[]          @relation("DocumentCreatedBy")
+  approvedDocuments  Document[]          @relation("DocumentApprovedBy")
+  signatures         DocumentSignature[]
+
+  @@map("users")
+}
+
+// ─── COMPLAINT SOURCES (Master Data) ────────────────
+
+model ComplaintSource {
+  id       Int     @id @default(autoincrement())
+  name     String  @unique @db.VarChar(50)
+  label    String  @db.VarChar(100)
+  isActive Boolean @default(true) @map("is_active")
+
+  // Relations
+  complaints Complaint[]
+
+  @@map("complaint_sources")
+}
+
+// ─── COMPLAINTS (Tabel Utama) ───────────────────────
+
+enum ComplaintStatus {
+  baru
+  diproses
+  selesai
+  ditolak
+  perlu_tindak_lanjut
+}
+
+model Complaint {
+  id                 Int             @id @default(autoincrement())
+  complaintNumber    String          @unique @map("complaint_number") @db.VarChar(25)
+  reportDate         DateTime        @map("report_date") @db.Date
+  customerName       String          @map("customer_name") @db.VarChar(150)
+  sourceId           Int             @map("source_id")
+  description        String          @db.Text
+  correctiveAction   String?         @map("corrective_action") @db.Text
+  verificationDate   DateTime?       @map("verification_date") @db.Date
+  picId              Int?            @map("pic_id")
+  verificationResult String?         @map("verification_result") @db.Text
+  remark             String?         @db.Text
+  status             ComplaintStatus @default(baru)
+  createdById        Int             @map("created_by")
+  updatedById        Int?            @map("updated_by")
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  source    ComplaintSource     @relation(fields: [sourceId], references: [id])
+  pic       User?               @relation("PIC", fields: [picId], references: [id])
+  createdBy User                @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedBy User?               @relation("UpdatedBy", fields: [updatedById], references: [id])
+  auditLogs AuditLog[]
+  documents DocumentComplaint[]
+
+  @@index([reportDate])
+  @@index([status])
+  @@index([picId])
+  @@index([sourceId])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@map("complaints")
+}
+
+// ─── AUDIT LOGS ─────────────────────────────────────
+
+model AuditLog {
+  id           Int      @id @default(autoincrement())
+  complaintId  Int      @map("complaint_id")
+  userId       Int      @map("user_id")
+  action       String   @db.VarChar(50)
+  fieldChanged String?  @map("field_changed") @db.VarChar(100)
+  userAgent    String?  @map("user_agent") @db.Text
+  oldValue     String?  @map("old_value") @db.Text
+  newValue     String?  @map("new_value") @db.Text
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  complaint Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([complaintId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─── DOCUMENTS (Laporan PDF) ────────────────────────
+
+enum DocumentStatus {
+  draft
+  waiting_approval
+  finalized
+  signed
+}
+
+enum DocumentPeriodType {
+  monthly
+  quarterly
+  yearly
+  custom
+}
+
+model Document {
+  id             Int                @id @default(autoincrement())
+  documentNumber String             @unique @map("document_number") @db.VarChar(50)
+  documentDate   DateTime           @map("document_date") @db.Date
+  version        String             @default("001") @db.VarChar(20)
+  title          String             @default("DOKUMENTASI PENGELOLAAN DAN PENANGANAN KELUHAN PELANGGAN") @db.VarChar(200)
+  periodType     DocumentPeriodType @default(monthly) @map("period_type")
+  periodStart    DateTime           @map("period_start") @db.Date
+  periodEnd      DateTime           @map("period_end") @db.Date
+  status         DocumentStatus     @default(draft)
+  approvedById   Int?               @map("approved_by")
+  approvedAt     DateTime?          @map("approved_at")
+  createdById    Int                @map("created_by")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  approvedBy User?               @relation("DocumentApprovedBy", fields: [approvedById], references: [id])
+  createdBy  User                @relation("DocumentCreatedBy", fields: [createdById], references: [id])
+  complaints DocumentComplaint[]
+  signatures DocumentSignature[]
+
+  @@map("documents")
+}
+
+// ─── DOCUMENT-COMPLAINTS (Many-to-Many) ─────────────
+
+model DocumentComplaint {
+  documentId   Int @map("document_id")
+  complaintId  Int @map("complaint_id")
+  displayOrder Int @default(0) @map("display_order")
+
+  // Relations
+  document  Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  complaint Complaint @relation(fields: [complaintId], references: [id])
+
+  @@id([documentId, complaintId])
+  @@map("document_complaints")
+}
+
+// ─── DOCUMENT SIGNATURES ────────────────────────────
+
+enum SignatureRole {
+  pelaksana
+  management_representative
+}
+
+model DocumentSignature {
+  id            Int           @id @default(autoincrement())
+  documentId    Int           @map("document_id")
+  userId        Int           @map("user_id")
+  role          SignatureRole
+  signedAt      DateTime?     @map("signed_at")
+  signatureData String?       @map("signature_data") @db.Text // base64 encoded PNG image
+
+  // Relations
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([documentId, role])
+  @@map("document_signatures")
+}
