@@ -9,11 +9,13 @@ import {
   TrendingUp,
   ArrowRight,
   FileText,
+  ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 import Link from "next/link";
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -60,15 +62,32 @@ const PIE_COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4
 
 function getStatusBadge(status: string) {
   const config: Record<string, { label: string; color: string }> = {
-    baru: { label: "Baru", color: "bg-blue-100 text-blue-700 border-blue-200" },
-    diproses: { label: "Diproses", color: "bg-yellow-100 text-yellow-700 border-yellow-200" },
-    selesai: { label: "Selesai", color: "bg-green-100 text-green-700 border-green-200" },
-    ditolak: { label: "Ditolak", color: "bg-red-100 text-red-700 border-red-200" },
-    perlu_tindak_lanjut: { label: "Tindak Lanjut", color: "bg-orange-100 text-orange-700 border-orange-200" },
+    baru: { label: "Baru", color: "bg-blue-50 text-blue-700 border-blue-200" },
+    diproses: { label: "Diproses", color: "bg-amber-50 text-amber-700 border-amber-200" },
+    selesai: { label: "Selesai", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    ditolak: { label: "Ditolak", color: "bg-red-50 text-red-700 border-red-200" },
+    perlu_tindak_lanjut: { label: "Tindak Lanjut", color: "bg-orange-50 text-orange-700 border-orange-200" },
   };
-  const { label, color } = config[status] || { label: status, color: "bg-gray-100 text-gray-700" };
+  const { label, color } = config[status] || { label: status, color: "bg-zinc-100 text-zinc-700" };
   return (
     <span className={`status-badge text-[11px] ${color}`}>{label}</span>
+  );
+}
+
+// Custom tooltip for Shadcn-style charts
+function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-white border border-zinc-200 rounded-lg shadow-lg p-3 text-[12px]">
+      <p className="font-medium text-zinc-900 mb-1.5">{label}</p>
+      {payload.map((entry, i) => (
+        <div key={i} className="flex items-center gap-2 text-zinc-600">
+          <div className="w-2 h-2 rounded-full" style={{ background: entry.color }}></div>
+          <span>{entry.name}:</span>
+          <span className="font-semibold text-zinc-900">{entry.value}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -194,32 +213,40 @@ export default function DashboardPage() {
       label: "Total Keluhan",
       value: stats?.total || 0,
       icon: MessageSquareWarning,
-      color: "stat-card-blue",
+      iconBg: "bg-blue-50",
       iconColor: "text-blue-600",
+      trend: "+12%",
+      trendUp: true,
       desc: "Keseluruhan data",
     },
     {
       label: "Baru",
       value: stats?.baru || 0,
       icon: AlertTriangle,
-      color: "stat-card-yellow",
-      iconColor: "text-yellow-600",
+      iconBg: "bg-amber-50",
+      iconColor: "text-amber-600",
+      trend: "+2",
+      trendUp: true,
       desc: "Menunggu tindakan",
     },
     {
       label: "Diproses",
       value: stats?.diproses || 0,
       icon: Clock,
-      color: "stat-card-orange",
+      iconBg: "bg-orange-50",
       iconColor: "text-orange-600",
+      trend: "0",
+      trendUp: false,
       desc: "Sedang ditangani",
     },
     {
       label: "Selesai",
       value: stats?.selesai || 0,
       icon: CheckCircle2,
-      color: "stat-card-green",
-      iconColor: "text-green-600",
+      iconBg: "bg-emerald-50",
+      iconColor: "text-emerald-600",
+      trend: "+3",
+      trendUp: true,
       desc: "Terverifikasi",
     },
   ];
@@ -233,24 +260,36 @@ export default function DashboardPage() {
           return (
             <div
               key={card.label}
-              className={`card ${card.color} p-5 animate-fade-in`}
-              style={{ animationDelay: `${i * 80}ms` }}
+              className="card p-5 animate-fade-in"
+              style={{ animationDelay: `${i * 60}ms` }}
             >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600 mb-1">
-                    {card.label}
-                  </p>
-                  <p className="text-3xl font-bold text-slate-800">
-                    {card.value}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">{card.desc}</p>
-                </div>
+              <div className="flex items-start justify-between mb-3">
+                <p className="text-[13px] font-medium text-zinc-500">
+                  {card.label}
+                </p>
                 <div
-                  className={`p-2.5 rounded-xl bg-white/60 ${card.iconColor}`}
+                  className={`p-2 rounded-lg ${card.iconBg} ${card.iconColor}`}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-4 h-4" />
                 </div>
+              </div>
+              <p className="text-2xl font-bold text-zinc-900 tabular-nums">
+                {card.value}
+              </p>
+              <div className="flex items-center gap-1.5 mt-1.5">
+                {card.trend !== "0" && (
+                  <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${
+                    card.trendUp ? "text-emerald-600" : "text-zinc-400"
+                  }`}>
+                    {card.trendUp ? (
+                      <ArrowUpRight className="w-3 h-3" />
+                    ) : (
+                      <ArrowDownRight className="w-3 h-3" />
+                    )}
+                    {card.trend}
+                  </span>
+                )}
+                <span className="text-[11px] text-zinc-400">{card.desc}</span>
               </div>
             </div>
           );
@@ -260,14 +299,14 @@ export default function DashboardPage() {
       {/* Avg resolution + quick actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="card p-5 flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-purple-100">
-            <TrendingUp className="w-5 h-5 text-purple-600" />
+          <div className="p-2.5 rounded-lg bg-purple-50">
+            <TrendingUp className="w-4 h-4 text-purple-600" />
           </div>
           <div>
-            <p className="text-sm text-slate-500">Rata-rata Penyelesaian</p>
-            <p className="text-2xl font-bold text-slate-800">
+            <p className="text-[12px] text-zinc-500">Rata-rata Penyelesaian</p>
+            <p className="text-xl font-bold text-zinc-900 tabular-nums">
               {stats?.avgResolutionDays || 0}{" "}
-              <span className="text-sm font-normal text-slate-500">hari</span>
+              <span className="text-[13px] font-normal text-zinc-400">hari</span>
             </p>
           </div>
         </div>
@@ -276,101 +315,111 @@ export default function DashboardPage() {
           href="/dashboard/complaints/new"
           className="card p-5 flex items-center gap-4 group hover:border-blue-300 transition-all"
         >
-          <div className="p-3 rounded-xl gradient-kai">
-            <MessageSquareWarning className="w-5 h-5 text-white" />
+          <div className="p-2.5 rounded-lg gradient-kai">
+            <MessageSquareWarning className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-slate-700 group-hover:text-blue-700 transition-colors">
+            <p className="text-[13px] font-medium text-zinc-700 group-hover:text-blue-700 transition-colors">
               Tambah Keluhan Baru
             </p>
-            <p className="text-xs text-slate-500">Input data keluhan</p>
+            <p className="text-[11px] text-zinc-400">Input data keluhan</p>
           </div>
-          <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+          <ArrowRight className="w-4 h-4 text-zinc-300 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
         </Link>
 
         <Link
           href="/dashboard/documents"
-          className="card p-5 flex items-center gap-4 group hover:border-green-300 transition-all"
+          className="card p-5 flex items-center gap-4 group hover:border-emerald-300 transition-all"
         >
-          <div className="p-3 rounded-xl bg-green-600">
-            <FileText className="w-5 h-5 text-white" />
+          <div className="p-2.5 rounded-lg bg-emerald-600">
+            <FileText className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-slate-700 group-hover:text-green-700 transition-colors">
+            <p className="text-[13px] font-medium text-zinc-700 group-hover:text-emerald-700 transition-colors">
               Generate Laporan
             </p>
-            <p className="text-xs text-slate-500">Cetak PDF dokumen</p>
+            <p className="text-[11px] text-zinc-400">Cetak PDF dokumen</p>
           </div>
-          <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-green-500 group-hover:translate-x-1 transition-all" />
+          <ArrowRight className="w-4 h-4 text-zinc-300 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all" />
         </Link>
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Bar Chart — Monthly Trends */}
+        {/* Area Chart — Monthly Trends */}
         <div className="card p-6 lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="font-semibold text-slate-800">
+              <h3 className="text-[14px] font-semibold text-zinc-900">
                 Trend Keluhan Bulanan
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-[11px] text-zinc-400 mt-0.5">
                 3 bulan terakhir
               </p>
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+          <ResponsiveContainer width="100%" height={260}>
+            <AreaChart data={monthlyData}>
+              <defs>
+                <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.15} />
+                  <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorResolved" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#22c55e" stopOpacity={0.15} />
+                  <stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" vertical={false} />
               <XAxis
                 dataKey="month"
-                tick={{ fontSize: 12, fill: "#94a3b8" }}
-                axisLine={{ stroke: "#e2e8f0" }}
+                tick={{ fontSize: 11, fill: "#a1a1aa" }}
+                axisLine={{ stroke: "#e4e4e7" }}
+                tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 12, fill: "#94a3b8" }}
-                axisLine={{ stroke: "#e2e8f0" }}
+                tick={{ fontSize: 11, fill: "#a1a1aa" }}
+                axisLine={false}
+                tickLine={false}
               />
-              <Tooltip
-                contentStyle={{
-                  background: "white",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "8px",
-                  fontSize: "13px",
-                }}
-              />
-              <Bar
+              <Tooltip content={<CustomTooltip />} />
+              <Area
+                type="monotone"
                 dataKey="total"
                 name="Total"
-                fill="#3b82f6"
-                radius={[4, 4, 0, 0]}
+                stroke="#3b82f6"
+                strokeWidth={2}
+                fill="url(#colorTotal)"
               />
-              <Bar
+              <Area
+                type="monotone"
                 dataKey="resolved"
                 name="Selesai"
-                fill="#22c55e"
-                radius={[4, 4, 0, 0]}
+                stroke="#22c55e"
+                strokeWidth={2}
+                fill="url(#colorResolved)"
               />
-            </BarChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
 
         {/* Pie Chart — Source Distribution */}
         <div className="card p-6">
           <div className="mb-6">
-            <h3 className="font-semibold text-slate-800">Sumber Keluhan</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Distribusi sumber</p>
+            <h3 className="text-[14px] font-semibold text-zinc-900">Sumber Keluhan</h3>
+            <p className="text-[11px] text-zinc-400 mt-0.5">Distribusi sumber</p>
           </div>
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={260}>
             <PieChart>
               <Pie
                 data={sourceData}
                 cx="50%"
                 cy="45%"
-                innerRadius={55}
-                outerRadius={85}
-                paddingAngle={4}
+                innerRadius={50}
+                outerRadius={80}
+                paddingAngle={3}
                 dataKey="value"
+                strokeWidth={0}
               >
                 {sourceData.map((_, index) => (
                   <Cell
@@ -381,15 +430,16 @@ export default function DashboardPage() {
               </Pie>
               <Legend
                 iconType="circle"
-                iconSize={8}
-                wrapperStyle={{ fontSize: "12px" }}
+                iconSize={7}
+                wrapperStyle={{ fontSize: "11px" }}
               />
               <Tooltip
                 contentStyle={{
                   background: "white",
-                  border: "1px solid #e2e8f0",
+                  border: "1px solid #e4e4e7",
                   borderRadius: "8px",
-                  fontSize: "13px",
+                  fontSize: "12px",
+                  boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
                 }}
               />
             </PieChart>
@@ -399,23 +449,23 @@ export default function DashboardPage() {
 
       {/* Recent Complaints */}
       <div className="card">
-        <div className="flex items-center justify-between p-6 pb-0">
+        <div className="flex items-center justify-between p-5 pb-0">
           <div>
-            <h3 className="font-semibold text-slate-800">Keluhan Terbaru</h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <h3 className="text-[14px] font-semibold text-zinc-900">Keluhan Terbaru</h3>
+            <p className="text-[11px] text-zinc-400 mt-0.5">
               5 keluhan terakhir
             </p>
           </div>
           <Link
             href="/dashboard/complaints"
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 group"
+            className="text-[12px] text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 group"
           >
             Lihat Semua
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
 
-        <div className="p-6 pt-4">
+        <div className="p-5 pt-4">
           <table className="data-table">
             <thead>
               <tr>
@@ -432,29 +482,29 @@ export default function DashboardPage() {
                 <tr
                   key={complaint.id}
                   className="animate-fade-in"
-                  style={{ animationDelay: `${i * 50}ms` }}
+                  style={{ animationDelay: `${i * 40}ms` }}
                 >
                   <td>
-                    <span className="font-mono text-xs font-semibold text-blue-600">
+                    <span className="font-mono text-[11px] font-semibold text-blue-600">
                       {complaint.complaintNumber}
                     </span>
                   </td>
-                  <td className="text-sm">
+                  <td className="text-[13px] text-zinc-500 whitespace-nowrap">
                     {new Date(complaint.reportDate).toLocaleDateString("id-ID", {
                       day: "2-digit",
                       month: "short",
                       year: "numeric",
                     })}
                   </td>
-                  <td className="text-sm font-medium">
+                  <td className="text-[13px] font-medium text-zinc-800">
                     {complaint.customerName}
                   </td>
-                  <td className="text-sm text-slate-500">{complaint.source}</td>
+                  <td className="text-[13px] text-zinc-500">{complaint.source}</td>
                   <td>{getStatusBadge(complaint.status)}</td>
                   <td className="text-right">
                     <Link
                       href={`/dashboard/complaints/${complaint.id}`}
-                      className="btn btn-sm btn-secondary text-xs"
+                      className="btn btn-secondary btn-sm text-[11px]"
                     >
                       Detail
                     </Link>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
@@ -41,6 +41,7 @@ export default function DashboardLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const { data: session } = useSession();
 
   const user = session?.user || {
@@ -55,16 +56,13 @@ export default function DashboardLayout({
     router.push("/login");
   };
 
-  // Get current page title
-  const currentPath =
-    typeof window !== "undefined" ? window.location.pathname : "/dashboard";
-  const pageInfo = pageTitles[currentPath] || {
+  const pageInfo = pageTitles[pathname] || {
     title: "SI-PKP",
     subtitle: "",
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen bg-[var(--background)]">
       {/* Sidebar */}
       <Sidebar
         user={{
@@ -81,7 +79,7 @@ export default function DashboardLayout({
       {/* Mobile overlay */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 lg:hidden"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}

@@ -11,6 +11,7 @@ import {
   LogOut,
   ChevronLeft,
   Train,
+  ChevronsUpDown,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -25,38 +26,63 @@ interface SidebarProps {
   onLogout: () => void;
 }
 
-const navItems = [
+const navSections = [
   {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-    roles: ["admin", "staff", "pic", "management_rep"],
+    label: "Overview",
+    items: [
+      {
+        label: "Dashboard",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+        roles: ["admin", "staff", "pic", "management_rep"],
+      },
+    ],
   },
   {
-    label: "Keluhan",
-    href: "/dashboard/complaints",
-    icon: MessageSquareWarning,
-    roles: ["admin", "staff", "pic", "management_rep"],
+    label: "Manajemen",
+    items: [
+      {
+        label: "Keluhan",
+        href: "/dashboard/complaints",
+        icon: MessageSquareWarning,
+        roles: ["admin", "staff", "pic", "management_rep"],
+      },
+      {
+        label: "Dokumen",
+        href: "/dashboard/documents",
+        icon: FileText,
+        roles: ["admin", "staff", "pic", "management_rep"],
+      },
+    ],
   },
   {
-    label: "Dokumen",
-    href: "/dashboard/documents",
-    icon: FileText,
-    roles: ["admin", "staff", "pic", "management_rep"],
-  },
-  {
-    label: "Pengguna",
-    href: "/dashboard/users",
-    icon: Users,
-    roles: ["admin"],
-  },
-  {
-    label: "Pengaturan",
-    href: "/dashboard/settings",
-    icon: Settings,
-    roles: ["admin"],
+    label: "Sistem",
+    items: [
+      {
+        label: "Pengguna",
+        href: "/dashboard/users",
+        icon: Users,
+        roles: ["admin"],
+      },
+      {
+        label: "Pengaturan",
+        href: "/dashboard/settings",
+        icon: Settings,
+        roles: ["admin"],
+      },
+    ],
   },
 ];
+
+function getRoleLabel(role: string): string {
+  const labels: Record<string, string> = {
+    admin: "Admin",
+    staff: "Staff",
+    pic: "PIC",
+    management_rep: "Mgmt Rep",
+  };
+  return labels[role] || role;
+}
 
 export default function Sidebar({
   user,
@@ -66,10 +92,6 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
 
-  const filteredNav = navItems.filter((item) =>
-    item.roles.includes(user.role)
-  );
-
   return (
     <aside
       className={`sidebar gradient-sidebar flex flex-col transition-all duration-300 ${
@@ -78,23 +100,23 @@ export default function Sidebar({
       style={{ width: collapsed ? "72px" : "260px" }}
     >
       {/* Header / Logo */}
-      <div className="flex items-center gap-3 px-4 h-16 border-b border-white/10">
-        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600 shrink-0">
-          <Train className="w-5 h-5 text-white" />
+      <div className="flex items-center gap-3 px-4 h-16 border-b border-white/[0.06]">
+        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-600 shrink-0">
+          <Train className="w-[18px] h-[18px] text-white" />
         </div>
         {!collapsed && (
-          <div className="animate-fade-in overflow-hidden">
-            <h1 className="text-white font-bold text-sm leading-tight">
+          <div className="animate-fade-in overflow-hidden flex-1 min-w-0">
+            <h1 className="text-white font-semibold text-[13px] leading-tight">
               SI-PKP
             </h1>
-            <p className="text-slate-400 text-[10px] leading-tight">
+            <p className="text-zinc-500 text-[10px] leading-tight truncate">
               Keluhan Pelanggan
             </p>
           </div>
         )}
         <button
           onClick={onToggle}
-          className="ml-auto p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+          className="ml-auto p-1.5 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.06] transition-all"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <ChevronLeft
@@ -106,49 +128,77 @@ export default function Sidebar({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {filteredNav.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href !== "/dashboard" && pathname.startsWith(item.href));
-          const Icon = item.icon;
+      <nav className="flex-1 py-3 overflow-y-auto">
+        {navSections.map((section) => {
+          const filteredItems = section.items.filter((item) =>
+            item.roles.includes(user.role)
+          );
+          if (filteredItems.length === 0) return null;
 
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`sidebar-nav-item relative ${
-                isActive ? "active" : ""
-              } ${collapsed ? "justify-center px-3" : ""}`}
-              title={collapsed ? item.label : undefined}
-            >
-              <Icon className="w-5 h-5 shrink-0" />
+            <div key={section.label} className="mb-1">
               {!collapsed && (
-                <span className="animate-fade-in">{item.label}</span>
+                <p className="sidebar-section-label">{section.label}</p>
               )}
-            </Link>
+              {filteredItems.map((item) => {
+                const isActive =
+                  pathname === item.href ||
+                  (item.href !== "/dashboard" &&
+                    pathname.startsWith(item.href));
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`sidebar-nav-item ${
+                      isActive ? "active" : ""
+                    } ${collapsed ? "!justify-center !px-3 !mx-2" : ""}`}
+                    title={collapsed ? item.label : undefined}
+                  >
+                    <Icon className="w-[18px] h-[18px] shrink-0" />
+                    {!collapsed && (
+                      <span className="animate-fade-in">{item.label}</span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
           );
         })}
       </nav>
 
-      {/* User Info */}
-      <div className="px-3 py-4 border-t border-white/10">
-        {!collapsed && (
-          <div className="px-3 mb-3 animate-fade-in">
-            <p className="text-white text-sm font-medium truncate">
-              {user.name}
-            </p>
-            <p className="text-slate-400 text-xs truncate">{user.position}</p>
+      {/* User Card */}
+      <div className="px-2 py-3 border-t border-white/[0.06]">
+        {!collapsed ? (
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/[0.04] transition-colors group animate-fade-in">
+            <div className="w-8 h-8 rounded-lg gradient-kai text-white text-[11px] font-bold flex items-center justify-center shrink-0">
+              {user.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .substring(0, 2)
+                .toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-zinc-200 text-[12px] font-medium truncate leading-tight">
+                {user.name}
+              </p>
+              <p className="text-zinc-500 text-[10px] truncate leading-tight">
+                {getRoleLabel(user.role)} • {user.position || user.email}
+              </p>
+            </div>
+            <ChevronsUpDown className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
           </div>
-        )}
+        ) : null}
         <button
           onClick={onLogout}
-          className={`sidebar-nav-item w-full hover:!bg-red-500/20 hover:!text-red-400 ${
-            collapsed ? "justify-center px-3" : ""
+          className={`sidebar-nav-item w-full mt-1 hover:!bg-red-500/10 hover:!text-red-400 ${
+            collapsed ? "!justify-center !px-3 !mx-2" : ""
           }`}
           title={collapsed ? "Logout" : undefined}
         >
-          <LogOut className="w-5 h-5 shrink-0" />
+          <LogOut className="w-[18px] h-[18px] shrink-0" />
           {!collapsed && <span>Keluar</span>}
         </button>
       </div>

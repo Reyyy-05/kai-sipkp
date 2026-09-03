@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ─── SI-PKP Design System ──────────────────────────── */
+/* ─── SI-PKP Design System (Shadcn-Inspired) ──────────── */
 
 :root {
   /* KAI Brand Colors */
@@ -13,16 +13,27 @@
   --kai-accent: #f59e0b;
   --kai-accent-light: #fbbf24;
 
-  /* Neutral */
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  /* Shadcn-style Neutral Palette */
+  --background: #fafafa;
+  --foreground: #09090b;
   --card: #ffffff;
-  --card-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #3b82f6;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+  --primary: #1e40af;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #1e40af;
+  --radius: 0.625rem;
 
   /* Status Colors */
   --status-baru: #3b82f6;
@@ -37,7 +48,11 @@
   --header-height: 64px;
 }
 
-/* ─── FONTS ──────────────────────────────────────────── */
+/* ─── BASE ───────────────────────────────────────────── */
+
+* {
+  border-color: var(--border);
+}
 
 body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -45,6 +60,7 @@ body {
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 /* ─── SCROLLBAR ──────────────────────────────────────── */
@@ -59,12 +75,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d4d4d8;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #a1a1aa;
 }
 
 /* ─── ANIMATIONS ─────────────────────────────────────── */
@@ -72,7 +88,7 @@ body {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -83,7 +99,7 @@ body {
 @keyframes slideInLeft {
   from {
     opacity: 0;
-    transform: translateX(-16px);
+    transform: translateX(-12px);
   }
   to {
     opacity: 1;
@@ -94,7 +110,7 @@ body {
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
   to {
     opacity: 1;
@@ -116,12 +132,23 @@ body {
     opacity: 1;
   }
   50% {
-    opacity: 0.7;
+    opacity: 0.6;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.4s ease-out forwards;
+  animation: fadeIn 0.35s ease-out forwards;
 }
 
 .animate-slide-in {
@@ -129,40 +156,41 @@ body {
 }
 
 .animate-scale-in {
-  animation: scaleIn 0.3s ease-out forwards;
+  animation: scaleIn 0.25s ease-out forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.2s ease-out forwards;
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, #f4f4f5 25%, #e4e4e7 50%, #f4f4f5 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-/* ─── CARD STYLES ────────────────────────────────────── */
+/* ─── CARD STYLES (Shadcn) ───────────────────────────── */
 
 .card {
   background: var(--card);
-  border-radius: 12px;
+  border-radius: var(--radius);
   border: 1px solid var(--border);
-  box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.04),
-    0 1px 2px -1px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  transition: all 0.15s ease;
 }
 
 .card:hover {
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.06),
-    0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06),
+              0 1px 2px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* ─── GLASS EFFECT ───────────────────────────────────── */
 
 .glass {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(228, 228, 231, 0.6);
 }
 
 /* ─── GRADIENT BACKGROUNDS ───────────────────────────── */
@@ -176,10 +204,10 @@ body {
 }
 
 .gradient-sidebar {
-  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(180deg, #09090b 0%, #18181b 100%);
 }
 
-/* ─── STAT CARD GRADIENTS ────────────────────────────── */
+/* ─── STAT CARD GRADIENTS (Shadcn soft) ──────────────── */
 
 .stat-card-blue {
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
@@ -206,19 +234,20 @@ body {
   border-color: #fdba74;
 }
 
-/* ─── STATUS BADGE ───────────────────────────────────── */
+/* ─── STATUS BADGE (Shadcn pill) ─────────────────────── */
 
 .status-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
+  padding: 3px 10px;
   border-radius: 9999px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.01em;
   border: 1px solid;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .status-badge::before {
@@ -230,7 +259,7 @@ body {
   animation: pulse-soft 2s ease-in-out infinite;
 }
 
-/* ─── TABLE STYLES ───────────────────────────────────── */
+/* ─── TABLE STYLES (Shadcn Data Table) ───────────────── */
 
 .data-table {
   width: 100%;
@@ -239,84 +268,88 @@ body {
 }
 
 .data-table thead th {
-  background: #f8fafc;
-  font-size: 12px;
+  background: var(--muted);
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #64748b;
-  padding: 12px 16px;
-  border-bottom: 2px solid #e2e8f0;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
   text-align: left;
   white-space: nowrap;
 }
 
 .data-table tbody td {
   padding: 12px 16px;
-  border-bottom: 1px solid #f1f5f9;
-  font-size: 14px;
-  color: #334155;
-  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--foreground);
+  vertical-align: middle;
 }
 
 .data-table tbody tr {
-  transition: background 0.15s ease;
+  transition: background 0.1s ease;
 }
 
 .data-table tbody tr:hover {
-  background: #f8fafc;
+  background: var(--muted);
 }
 
-/* ─── FORM STYLES ────────────────────────────────────── */
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ─── FORM STYLES (Shadcn Input) ─────────────────────── */
 
 .form-input {
   width: 100%;
-  padding: 10px 14px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 14px;
-  background: white;
+  padding: 8px 12px;
+  border: 1px solid var(--input);
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 13px;
+  background: var(--card);
   color: var(--foreground);
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   outline: none;
 }
 
 .form-input:focus {
-  border-color: var(--kai-primary-light);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--ring);
+  box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.08);
 }
 
 .form-input::placeholder {
-  color: #94a3b8;
+  color: var(--muted-foreground);
 }
 
 .form-label {
   display: block;
   font-size: 13px;
-  font-weight: 600;
-  color: #475569;
+  font-weight: 500;
+  color: var(--foreground);
   margin-bottom: 6px;
 }
 
 .form-error {
   font-size: 12px;
-  color: #ef4444;
+  color: var(--destructive);
   margin-top: 4px;
 }
 
-/* ─── BUTTON STYLES ──────────────────────────────────── */
+/* ─── BUTTON STYLES (Shadcn) ─────────────────────────── */
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   outline: none;
   border: none;
   text-decoration: none;
@@ -329,36 +362,34 @@ body {
 }
 
 .btn-primary {
-  background: var(--kai-primary);
-  color: white;
+  background: var(--primary);
+  color: var(--primary-foreground);
 }
 
 .btn-primary:hover:not(:disabled) {
   background: var(--kai-primary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+  box-shadow: 0 1px 3px rgba(30, 64, 175, 0.25);
 }
 
 .btn-secondary {
-  background: white;
+  background: var(--card);
   color: var(--foreground);
   border: 1px solid var(--border);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: var(--muted);
+  border-color: #d4d4d8;
 }
 
 .btn-danger {
-  background: #ef4444;
-  color: white;
+  background: var(--destructive);
+  color: var(--destructive-foreground);
 }
 
 .btn-danger:hover:not(:disabled) {
   background: #dc2626;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.25);
 }
 
 .btn-success {
@@ -368,18 +399,27 @@ body {
 
 .btn-success:hover:not(:disabled) {
   background: #16a34a;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+  box-shadow: 0 1px 3px rgba(34, 197, 94, 0.25);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted-foreground);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--muted);
+  color: var(--foreground);
 }
 
 .btn-sm {
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .btn-lg {
-  padding: 12px 24px;
-  font-size: 16px;
+  padding: 10px 20px;
+  font-size: 14px;
 }
 
 /* ─── SIDEBAR ────────────────────────────────────────── */
@@ -391,42 +431,61 @@ body {
   left: 0;
   top: 0;
   z-index: 40;
-  transition: width 0.3s ease;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #52525b;
+  padding: 8px 16px 4px;
 }
 
 .sidebar-nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 14px;
+  gap: 10px;
+  padding: 8px 12px;
+  margin: 1px 8px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 13px;
   font-weight: 500;
-  color: #94a3b8;
-  transition: all 0.2s ease;
+  color: #a1a1aa;
+  transition: all 0.15s ease;
   text-decoration: none;
+  position: relative;
 }
 
 .sidebar-nav-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e4e4e7;
 }
 
 .sidebar-nav-item.active {
-  background: rgba(59, 130, 246, 0.15);
+  background: rgba(59, 130, 246, 0.12);
   color: #60a5fa;
 }
 
 .sidebar-nav-item.active::before {
   content: "";
   position: absolute;
-  left: 0;
+  left: -8px;
   top: 50%;
   transform: translateY(-50%);
   width: 3px;
-  height: 24px;
+  height: 20px;
   background: #3b82f6;
   border-radius: 0 3px 3px 0;
+}
+
+/* ─── SEPARATOR ──────────────────────────────────────── */
+
+.separator {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 0;
 }
 
 /* ─── RESPONSIVE ─────────────────────────────────────── */
